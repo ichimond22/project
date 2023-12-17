@@ -1,8 +1,8 @@
-# Importing necessary libraries
 import streamlit as st
 from PIL import Image
 import numpy as np
 import tensorflow as tf
+import subprocess
 
 # Title of the Streamlit app
 st.title("Streamlit App with Image Classification")
@@ -15,6 +15,17 @@ def classify_image(image):
     try:
         # Load the trained model (replace with your own model)
         model = tf.keras.models.load_model("best_model.h5")
+
+        # Create an optimizer with weight decay
+        optimizer = tf.optimizers.Adam(learning_rate=0.001)
+
+        # Manually apply weight decay to the optimizer's variables
+        for var in model.trainable_variables:
+            if "kernel" in var.name:
+                optimizer.add_weight_decay(0.0001, var)
+
+        # Compile the model with the custom optimizer
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
         # Preprocess the image
         img_array = np.array(image)
@@ -50,3 +61,7 @@ if uploaded_file is not None:
 # Link to open the app in Colab
 colab_link = "<a href=\"https://colab.research.google.com/github/qjjslomibao/streamlit-requirement/blob/main/final_requirement_streamlit.py\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
 st.markdown(colab_link, unsafe_allow_html=True)
+
+# Run Streamlit app in the background
+streamlit_command = "streamlit run /usr/local/lib/python3.10/dist-packages/colab_kernel_launcher.py"
+subprocess.Popen(streamlit_command, shell=True)
